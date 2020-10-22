@@ -146,6 +146,8 @@ if __name__ == "__main__":
                         datefmt='%d/%m/%Y %H:%M:%S')
 
     # = os.path.join(os.getcwd())
+    #! Modify this static path until auto-detect
     dir = "C:\\Users\\root\\Games\\Age of Empires 3 DE\\76561197960427286\\Savegame"
+
     logging.debug(f"ReplayBoss is now monitoring {dir} for new replays to backup.")
     main(dir)
