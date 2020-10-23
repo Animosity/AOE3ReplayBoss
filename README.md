@@ -25,4 +25,4 @@ Play, Study Replay, Get Better!
 - AOE3ReplayBoss + AOED3 co-launcher
 
 ## Acknowledgements
-- Contributors: User
+- Contributors: usertxt
