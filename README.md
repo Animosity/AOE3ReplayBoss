@@ -1,4 +1,4 @@
-<img src="src/anim.png" align="right" />
+<img src="src/anim.png" align="right" width=256 />
 
 # AOE3 Replay Boss 
 > Created for Age of Empires 3: Definitive Edition
