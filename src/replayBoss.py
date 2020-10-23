@@ -3,14 +3,17 @@ import argparse
 
 from pathlib import Path
 from enum import Enum
+from collections import deque
 
 import watchdog.events
 import watchdog.observers
 import logging.config
 
+
 _VERSION_MAJ = 0
 _VERSION_MIN = 1
 _VERSION_BUILD = "1"
+
 
 
 class Process(Enum):
@@ -18,6 +21,7 @@ class Process(Enum):
     RENAME_ONLY = 1
     CATEGORIZE_ONLY = 2
     RENAME_CATEGORIZE = 3
+
 
 class Replay():
     def __init__(self, process=Process.NOOP, orig_path=None, parentdir_name=None, data={"category": 0, "parentdir_name": "", "newfilename": ""}):
@@ -32,11 +36,11 @@ class Replay():
         self.ui_status = "YYYY-MM-DD@HHMM_SS [RENAMED]: [NAMEOFGAME~] NAME_OF_FILE"
 
 
-class ReplayProcessor():
+class ReplayProcessor(watchdog.events.FileSystemEventHandler):
     def __init__(self, target_replay=None, process=Process.NOOP):
         self.target_replay = target_replay
         self.process = Process.NOOP
-
+        self.event_buf = deque(['']*6) # FIFO-6
 
     @staticmethod
     def run_process(replay, process):
@@ -84,9 +88,29 @@ class ReplayProcessor():
         else:
             pass
 
+    """A handler for new replay files which triggered watchdog events"""
+
+    def on_created(self, event):
+        # logging.debug("ReplayFinder() entry")
+        if self.is_replay(event.src_path):
+            logging.debug(f"*CREATED REPLAY*: {event.src_path}")
+        else:
+            logging.debug(f"CREATED FILE: {event.src_path}")
+
+        return
+
+    def on_modified(self, event):
+        if self.is_replay(event.src_path):
+            logging.debug(f"MODIFIED REPLAY: {event.src_path}")
+        else:
+            logging.debug(f"MODIFIED FILE: {event.src_path}")
+
+    def is_replay(self, path):
+        name, ext = os.path.splitext(path)
+        return ext in ['.age3Yrec']
+
 
 class ReplayFinder(watchdog.events.FileSystemEventHandler):
-
     def __init__(self,  *args, **kwargs):
         self.app = None
     """A handler for new replay files which triggered watchdog events"""
@@ -126,9 +150,10 @@ def watchdog_event_handler(self, event):
         result = ReplayProcessor().run_process(replay, Process.RENAME_ONLY)
         logging.debug(f"app.form.watchdog_event_handler() - ReplayProcessor result is {result}")
 
+
 def main(path):
     observer = watchdog.observers.Observer()
-    event_handler = ReplayFinder()
+    event_handler = ReplayProcessor()
     observer.schedule(event_handler, path=path)
     observer.start()
     try:
@@ -141,13 +166,12 @@ def main(path):
 
 if __name__ == "__main__":
     # dir = getReplayPath()
-
-    logging.basicConfig(filename="replayBoss.log", level=logging.DEBUG, format='%(asctime)s %(message)s',
+    logging.basicConfig(filename="ReplayBoss.log", level=logging.DEBUG, format='%(asctime)s,%(msecs)03d %(message)s',
                         datefmt='%d/%m/%Y %H:%M:%S')
 
     # = os.path.join(os.getcwd())
+
     #! Modify this static path until auto-detect
     dir = "C:\\Users\\root\\Games\\Age of Empires 3 DE\\76561197960427286\\Savegame"
-
     logging.debug(f"ReplayBoss is now monitoring {dir} for new replays to backup.")
     main(dir)
