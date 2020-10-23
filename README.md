@@ -6,6 +6,9 @@
 No longer will your recorded multiplayer games be overwritten! Save your replays safely with AOE3 Replay Boss. 
 Play, Study Replay, Get Better!
 
+## Download latest release
+- https://github.com/Animosity/AOE3ReplayBoss/releases
+
 ## How to use
 - Copy AOE3ReplayBoss.exe into your AOE3DE \Savegame path, which is commonly found under C:\Users\<YOUR_USERNAME>\Games\Age of Empires 3 DE\<UNIQUE_ID_NUMBERS>\Savegame\
 - You can also find your \Savegame path ingame: At the main menu, navigate to: LOAD -> OPEN SAVED GAMES -- the folder will be opened and you can copy AOE3ReplayBoss.exe there.
