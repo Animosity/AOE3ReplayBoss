@@ -13,7 +13,7 @@ import logging.config
 _VERSION_MAJ = 0
 _VERSION_MIN = 1
 _VERSION_BUILD = "1"
-
+_SUBDIR = "ReplayBoss Archive\\"
 
 class ModEvent(Enum):
     NULL = -1
@@ -102,11 +102,11 @@ class ReplayProcessor(watchdog.events.FileSystemEventHandler):
         logging.debug(f"CREATED FILE: {event.src_path}")
 
     def on_modified(self, event):
-        def is_civ(self, path):
+        def is_civ(path):
             name, ext = os.path.splitext(path)
             return ext in ['.xml']
 
-        def is_replay(self, path):
+        def is_replay(path):
             # name, ext = os.path.splitext(path)
             # return ext in ['.age3Yrec']
             return str(path).endswith("Record Game.age3Yrec")
@@ -159,22 +159,27 @@ def main(path):
 
 
 def footprint():
-    # TODO: make ReplayBoss Archive subdir
-    # TODO: write log under ReplayBoss Archive
-    pass
+    PATH_ARCHIVE = os.path.join(os.getcwd(), _SUBDIR)
+
+    if not os.path.isdir(PATH_ARCHIVE):
+        os.mkdir(PATH_ARCHIVE)
+
+    PATH_LOGFILE = os.path.join(PATH_ARCHIVE, "ReplayBoss.log")
+    logging.basicConfig(filename=PATH_LOGFILE, level=logging.DEBUG, format='%(asctime)s,%(msecs)03d %(message)s',
+    datefmt = '%d/%m/%Y %H:%M:%S')
+
 
 def get_replay_path():
     # TODO: Dynamically locate game replay path
-    pass
+    PATH_REPLAYS = os.getcwd()
+    return PATH_REPLAYS
 
 
 if __name__ == "__main__":
-    # get_replay_path()
+    dir = get_replay_path()
     footprint()
-    logging.basicConfig(filename="ReplayBoss.log", level=logging.DEBUG, format='%(asctime)s,%(msecs)03d %(message)s',
-                        datefmt='%d/%m/%Y %H:%M:%S')
 
-    #! Modify this static path until auto-detect
+    #! Modify this static path until auto-detect. Overwrites get_replay_path() result
     dir = "C:\\Users\\root\\Games\\Age of Empires 3 DE\\76561197960427286\\Savegame"
     logging.debug(f"ReplayBoss is now monitoring {dir} for new replays to backup.")
     main(dir)
