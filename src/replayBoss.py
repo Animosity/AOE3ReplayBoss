@@ -1,19 +1,20 @@
-import sys, os, time, datetime, math, re
+import os, time
 import argparse
-
-from pathlib import Path
-from enum import Enum
-from collections import deque
-
+import shutil
 import watchdog.events
 import watchdog.observers
 import logging.config
 
+from datetime import datetime
+from enum import Enum
+from collections import deque
 
 _VERSION_MAJ = 0
 _VERSION_MIN = 1
-_VERSION_BUILD = "1"
+_VERSION_BUILD = "MinimumViableProduct"
+
 _SUBDIR = "ReplayBoss Archive\\"
+_PATH_ARCHIVE = os.path.join(os.getcwd(), _SUBDIR)
 
 class ModEvent(Enum):
     NULL = -1
@@ -37,12 +38,12 @@ class Replay():
         self.parentdir_name = parentdir_name
         self.data = data
         self.status = "Null Status"
-        self.ui_status = "YYYY-MM-DD@HHMM_SS [RENAMED]: [NAMEOFGAME~] NAME_OF_FILE"
 
 
 class ReplayProcessor(watchdog.events.FileSystemEventHandler):
-    def __init__(self, target_replay=None, process=Process.NOOP):
+    def __init__(self, path, target_replay=None, process=Process.NOOP):
         #self.target_replay = target_replay
+        self.path_replays = path
         self.process = process
         self.triggered = False
         self.last_event = ModEvent.NULL
@@ -56,32 +57,11 @@ class ReplayProcessor(watchdog.events.FileSystemEventHandler):
         logging.debug(f"ReplayProcessor(process={process}) entry")
 
         if process is Process.RENAME_ONLY:
-            logging.debug(f"  Starting replay backup process")
             try:
-                #winsound.PlaySound(os.path.join(os.getcwd(),_AUDIO_CUE_BANK["new"]), winsound.SND_FILENAME)
-                suffix = ".AGE3YSAV"
-                # GENERATE FILENAME
-                replay_filename = "test1"
-                replay_filename += suffix
-
-                new_path = os.path.join(os.path.split(replay.orig_path)[0], f"{replay_filename}{os.path.splitext(replay.orig_path)[1]}")
-
-                logging.debug(f"ReplayProcessor.run_process(Process.RENAME_ONLY) - new_path : {new_path}")
-                os.rename(replay.orig_path, new_path)
-                replay.new_filename = os.path.basename(new_path)
-                logging.debug(f"ReplayProcessor.run_process(Process.RENAME_ONLY) - SUCCESS")
-                replay.status = "RENAME Successful"
-
-                logging.debug(f"  successful replay result is {replay}")
-                return (True,
-                        {
-                         "exception": None
-                         },
-                        replay)
-
+                pass
             except Exception as e:
                 #winsound.PlaySound(os.path.join(os.getcwd(), _AUDIO_CUE_BANK["error"]), winsound.SND_FILENAME)
-                logging.debug(f"  RENAME FAILED : {e}")
+                logging.debug(f"RENAME FAILED : {e}")
                 return (False,
                         {
                          "exception": e
@@ -134,20 +114,39 @@ class ReplayProcessor(watchdog.events.FileSystemEventHandler):
             pattern = [ModEvent.REPLAY, ModEvent.CIV, ModEvent.CIV, ModEvent.CIV, ModEvent.CIV, ModEvent.CIV, ModEvent.CIV]
             buf_list = list(self.event_buf)[:7]
             if buf_list == pattern:
-                logging.debug("GAMEOVER DETECTED, SAVING REPLAY")
+                logging.info("GAMEOVER DETECTED, ARCHIVING UNSAVED REPLAY")
+                self.triggered = False
+                self.archive_replay()
                 # self.runprocess(Process.CATEGORIZE_RENAME)
 
+    def archive_replay(self):
+        try:
+            timestamp = datetime.now()
+            timestamp = timestamp.replace(microsecond=0)
+            timestamp = timestamp.strftime("%Y-%m-%d %H-%M-%S")
 
+            replay_filename = "Record Game.age3Yrec"
+            archived_replay = f"Record Game {str(timestamp)}.age3Yrec"
+            new_replay_file = os.path.join(_PATH_ARCHIVE, replay_filename)
+            archived_replay_file = os.path.join(_PATH_ARCHIVE, archived_replay)
+            shutil.copy(self.new_replay, _PATH_ARCHIVE)
+            os.rename(new_replay_file, archived_replay_file)
+            print(f"REPLAY ARCHIVED @ : {archived_replay_file}")
+            logging.info(f"REPLAY ARCHIVED @ : {archived_replay_file}")
+            # winsound.PlaySound(os.path.join(os.getcwd(), _AUDIO_CUE_BANK["success"]), winsound.SND_FILENAME)
 
+            """ <SCRATCHPAD>
+                replay = self.build_replay(process=Process.RENAME_ONLY, timeout_s=15, orig_path=replay_origpath)
+                result = ReplayProcessor().run_process(replay, Process.RENAME_ONLY)
+               </SCRATCHPAD> """
 
-    """ <SCRATCHPAD>
-    replay = self.build_replay(process=Process.RENAME_ONLY, timeout_s=15, orig_path=replay_origpath)
-    result = ReplayProcessor().run_process(replay, Process.RENAME_ONLY)
-   </SCRATCHPAD> """
+        except FileNotFoundError as e:
+            logging.info(f"REPLAY was already properly saved by AOE3DE.")
+
 
 def main(path):
     observer = watchdog.observers.Observer()
-    event_handler = ReplayProcessor()
+    event_handler = ReplayProcessor(path=path)
     observer.schedule(event_handler, path=path)
     observer.start()
     try:
@@ -159,20 +158,18 @@ def main(path):
 
 
 def footprint():
-    PATH_ARCHIVE = os.path.join(os.getcwd(), _SUBDIR)
+    if not os.path.isdir(_PATH_ARCHIVE):
+        os.mkdir(_PATH_ARCHIVE)
 
-    if not os.path.isdir(PATH_ARCHIVE):
-        os.mkdir(PATH_ARCHIVE)
-
-    PATH_LOGFILE = os.path.join(PATH_ARCHIVE, "ReplayBoss.log")
-    logging.basicConfig(filename=PATH_LOGFILE, level=logging.DEBUG, format='%(asctime)s,%(msecs)03d %(message)s',
+    path_logfile = os.path.join(_PATH_ARCHIVE, "ReplayBoss.log")
+    logging.basicConfig(filename=path_logfile, level=logging.DEBUG, format='%(asctime)s,%(msecs)03d %(message)s',
     datefmt = '%d/%m/%Y %H:%M:%S')
 
 
 def get_replay_path():
     # TODO: Dynamically locate game replay path
-    PATH_REPLAYS = os.getcwd()
-    return PATH_REPLAYS
+    path_replays = os.getcwd()
+    return path_replays
 
 
 if __name__ == "__main__":
@@ -180,6 +177,9 @@ if __name__ == "__main__":
     footprint()
 
     #! Modify this static path until auto-detect. Overwrites get_replay_path() result
-    dir = "C:\\Users\\root\\Games\\Age of Empires 3 DE\\76561197960427286\\Savegame"
-    logging.debug(f"ReplayBoss is now monitoring {dir} for new replays to backup.")
+    #path_replays = "C:\\Users\\root\\Games\\Age of Empires 3 DE\\76561197960427286\\Savegame"
+    print(f"Started ReplayBoss v{_VERSION_MAJ}.{_VERSION_MIN}-{_VERSION_BUILD}")
+    logging.info(f"ReplayBoss is now monitoring {dir} for new replays to backup.")
+    print(f"ReplayBoss is now monitoring {dir} for new replays to backup.")
+    logging.info(f"ReplayBoss is now monitoring {dir} for new replays to backup.")
     main(dir)
