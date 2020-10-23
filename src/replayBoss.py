@@ -102,8 +102,16 @@ class ReplayProcessor(watchdog.events.FileSystemEventHandler):
         logging.debug(f"CREATED FILE: {event.src_path}")
 
     def on_modified(self, event):
+        def is_civ(self, path):
+            name, ext = os.path.splitext(path)
+            return ext in ['.xml']
 
-        if self.is_civ(event.src_path):
+        def is_replay(self, path):
+            # name, ext = os.path.splitext(path)
+            # return ext in ['.age3Yrec']
+            return str(path).endswith("Record Game.age3Yrec")
+
+        if is_civ(event.src_path):
             logging.debug(f"MODIFIED CIV: {event.src_path}")
             if self.last_event is ModEvent.REPLAY:  # Triggered
                 logging.debug("<< Triggered")
@@ -113,7 +121,7 @@ class ReplayProcessor(watchdog.events.FileSystemEventHandler):
             self.event_buf.append(ModEvent.CIV)
             self.last_event = ModEvent.CIV
 
-        elif self.is_replay(event.src_path):
+        elif is_replay(event.src_path):
             logging.debug(f"MODIFIED REPLAY: {event.src_path}")
             self.last_event = ModEvent.REPLAY
             self.trigger_buf.append(ModEvent.REPLAY)
@@ -130,14 +138,7 @@ class ReplayProcessor(watchdog.events.FileSystemEventHandler):
                 # self.runprocess(Process.CATEGORIZE_RENAME)
 
 
-    def is_civ(self, path):
-        name, ext = os.path.splitext(path)
-        return ext in ['.xml']
 
-    def is_replay(self, path):
-        #name, ext = os.path.splitext(path)
-        #return ext in ['.age3Yrec']
-        return str(path).endswith("Record Game.age3Yrec")
 
     """ <SCRATCHPAD>
     replay = self.build_replay(process=Process.RENAME_ONLY, timeout_s=15, orig_path=replay_origpath)
