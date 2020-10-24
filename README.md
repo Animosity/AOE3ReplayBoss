@@ -3,7 +3,7 @@
 # AOE3 Replay Boss 
 > Created for Age of Empires 3: Definitive Edition
 
-No longer will your recorded multiplayer games be overwritten! Save your replays safely with AOE3 Replay Boss. 
+Protect your multiplayer game replays from being overwritten by the game! Automatically archive your replays safely with AOE3 Replay Boss. 
 
 Play, Study Replay, Get Better!
 
