@@ -11,7 +11,7 @@ Play, Study Replay, Get Better!
 - https://github.com/Animosity/AOE3ReplayBoss/releases
 
 ## How to use
-- Copy AOE3ReplayBoss.exe into your AOE3DE \Savegame path, which is commonly found under `C:\Users\\<YOUR_USERNAME>\Games\Age of Empires 3 DE\\<UNIQUE_ID_NUMBERS>\Savegame\`
+- Copy AOE3ReplayBoss.exe into your AOE3DE \Savegame path, which is commonly found under `C:\Users\<YOUR_USERNAME>\Games\Age of Empires 3 DE\<UNIQUE_ID_NUMBERS>\Savegame\`
 - You can also find your \Savegame path ingame: 
   At the main menu, navigate to: *LOAD* -> *OPEN SAVED GAMES* -- the folder will be opened and you can copy AOE3ReplayBoss.exe there.
 - Run AOE3ReplayBoss.exe before you begin your gaming session. It will monitor the replay folder for the gameover condition, and copy your *Recorded Game.age3Yreplay* to the *\Savegame\ReplayBoss Archive* folder with the correct timestamp.
