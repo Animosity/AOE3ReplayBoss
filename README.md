@@ -17,7 +17,6 @@ Play, Study Replay, Get Better!
 
 ## Need help? Want to help?
 - File an Issue on this Github repo
-- Contact Animosity#6942 on Discord
 - animosity.txt+replayboss@gmail.com
 
 ## Wishlist
